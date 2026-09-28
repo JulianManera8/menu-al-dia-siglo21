@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu Al Día</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<main class="container">
+    <header>
+        <h1>Menu Al Día</h1>
+        <p>Prototipo AP2 — gestión de menú diario para un bar</p>
+    </header>
+
+    <section class="card">
+        <h2>Fecha del menú</h2>
+        <form method="get" action="/" class="row">
+            <input type="date" name="fecha" th:value="${fecha}" required>
+            <button type="submit">Ver menú</button>
+        </form>
+        <p>Estado: <strong th:text="${menu.estado}"></strong></p>
+    </section>
+
+    <section class="grid">
+        <article class="card">
+            <h2>Registrar plato</h2>
+            <form method="post" action="/platos" class="stack">
+                <input name="nombre" placeholder="Nombre" required>
+                <input name="descripcion" placeholder="Descripción">
+                <input name="precioBase" type="number" min="0" step="0.01" placeholder="Precio base" required>
+                <select name="categoriaId" required>
+                    <option value="">Seleccionar categoría</option>
+                    <option th:each="categoria : ${categorias}"
+                            th:value="${categoria.id}"
+                            th:text="${categoria.nombre}"></option>
+                </select>
+                <button type="submit">Guardar plato</button>
+            </form>
+        </article>
+
+        <article class="card">
+            <h2>Agregar plato al menú</h2>
+            <form th:action="@{'/menu/' + ${menu.id} + '/platos'}" method="post" class="stack">
+                <input type="hidden" name="fecha" th:value="${fecha}">
+                <select name="platoId" required>
+                    <option value="">Seleccionar plato</option>
+                    <option th:each="plato : ${platos}"
+                            th:value="${plato.id}"
+                            th:text="${plato.nombre + ' — $' + plato.precioBase}"></option>
+                </select>
+                <input name="precioDia" type="number" min="0" step="0.01" placeholder="Precio del día" required>
+                <button type="submit">Agregar al menú</button>
+            </form>
+        </article>
+    </section>
+
+    <section class="card">
+        <div class="row between">
+            <div>
+                <h2>Menú del día</h2>
+                <p th:text="${fecha}"></p>
+            </div>
+            <form th:action="@{'/menu/' + ${menu.id} + '/publicar'}" method="post">
+                <input type="hidden" name="fecha" th:value="${fecha}">
+                <button type="submit">Publicar menú</button>
+            </form>
+        </div>
+
+        <p th:if="${#lists.isEmpty(items)}">Todavía no hay platos cargados.</p>
+
+        <table th:if="${!#lists.isEmpty(items)}">
+            <thead>
+            <tr>
+                <th>Plato</th>
+                <th>Precio</th>
+                <th>Disponibilidad</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="item : ${items}">
+                <td th:text="${item.plato.nombre}"></td>
+                <td th:text="${'$' + item.precioDia}"></td>
+                <td th:text="${item.disponible ? 'Disponible' : 'Agotado'}"></td>
+                <td>
+                    <form th:action="@{'/menu/items/' + ${item.id} + '/disponibilidad'}" method="post">
+                        <input type="hidden" name="fecha" th:value="${fecha}">
+                        <button type="submit">Cambiar estado</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+</main>
+</body>
+</html>
